@@ -1,0 +1,194 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ lesson.title }}</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+
+<style>
+
+@font-face {
+    font-family: Comfortaa;
+    src: url("{% static 'fonts/Comforta.ttf' %}");
+}
+
+body {
+    font-family: Comfortaa;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    margin: 40px auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Breadcrumb Styling */
+.breadcrumb {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.breadcrumb-link {
+    text-decoration: none;
+    color: #007BFF;
+}
+
+.breadcrumb-link:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-current {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Lesson Title */
+.lesson-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+/* Lesson Content */
+.lesson-content p {
+    margin-bottom: 16px;
+    text-align: justify;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+/* Tasks Section */
+.tasks-container {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.task {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.task p {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.task ol {
+    padding-left: 20px;
+}
+
+.task .answer {
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+}
+
+.task .answer:hover {
+    background-color: #f0f0f0;
+}
+
+/* Back Link */
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #555;
+    font-size: 16px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+
+</style>
+
+<body>
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb">
+            <a href="{% url 'landing' %}" class="breadcrumb-link">Home</a> >
+            <a href="{% url 'subject' subject.slug %}" class="breadcrumb-link">{{ subject.title }}</a> >
+            <a href="{% url 'topic' subject.slug topic.slug %}" class="breadcrumb-link">{{ topic.title }}</a> >
+            <span class="breadcrumb-current">{{ lesson.title }}</span>
+        </nav>
+
+        <!-- Lesson Content -->
+        <h1 class="lesson-title">{{ lesson.title }}</h1>
+        <div class="lesson-content">
+            {{ lesson.content|safe }}
+        </div>
+
+        <!-- Tasks Section -->
+        <h2>Tasks</h2>
+        <div class="tasks-container">
+            {% for task in lesson.tasks.all %}
+            <div class="task" data-correct="{{ task.correct_option }}">
+                <p><strong>{{ task.question|safe }}</strong></p>
+                <ol>
+                    {% for option in task.options.all %}
+                    <li class="answer">{{ option.text }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Back to Topic Link -->
+        <a class="back-link" href="{% url 'topic' subject.slug topic.slug %}">← Back to {{ topic.title }}</a>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="correct-sound" src="/static/sounds/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="/static/sounds/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Task logic for correct and incorrect answers
+            document.querySelectorAll(".answer").forEach((answer, index) => {
+                answer.addEventListener("click", function () {
+                    const task = answer.closest(".task");
+                    const correctIndex = parseInt(task.dataset.correct); // Correct answer index
+                    const selectedIndex = [...task.querySelectorAll(".answer")].indexOf(answer) + 1;
+
+                    if (selectedIndex === correctIndex) {
+                        answer.style.backgroundColor = "lightgreen";
+                        document.getElementById("correct-sound").play();
+                    } else {
+                        answer.style.backgroundColor = "lightcoral";
+                        document.getElementById("wrong-sound").play();
+                    }
+
+                    // Disable further clicks
+                    task.querySelectorAll(".answer").forEach(a => a.style.pointerEvents = "none");
+                });
+            });
+        });
+    </script>
+</body>
+</html>
