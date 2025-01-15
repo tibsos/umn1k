@@ -3,21 +3,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{{ lesson.title }}</title>
-
     <link rel="stylesheet" href="/static/css/styles.css">
-
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
 </head>
 
 <style>
-
 @font-face {
     font-family: Comfortaa;
     src: url("{% static 'fonts/Comforta.ttf' %}");
@@ -112,6 +106,32 @@ body {
     background-color: #f0f0f0;
 }
 
+/* Answer input field */
+.task .answer-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Feedback for correct/incorrect answers */
+.feedback {
+    margin-top: 10px;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
+}
+
 /* Back Link */
 .back-link {
     display: inline-block;
@@ -124,7 +144,6 @@ body {
 .back-link:hover {
     text-decoration: underline;
 }
-
 
 </style>
 
@@ -148,13 +167,27 @@ body {
         <h2>Tasks</h2>
         <div class="tasks-container">
             {% for task in lesson.tasks.all %}
-            <div class="task" data-correct="{{ task.correct_option }}">
+            <div class="task" data-correct="{{ task.correct_answer }}">
                 <p><strong>{{ task.question|safe }}</strong></p>
-                <ol>
-                    {% for option in task.options.all %}
-                    <li class="answer">{{ option.text }}</li>
-                    {% endfor %}
-                </ol>
+
+                <!-- Answer Input Field -->
+                <input type="text" class="answer-input" placeholder="Enter the number of your answer (e.g., 1, 2, 3, or 4)">
+                
+                <!-- Display answer options below input field -->
+                <div class="answers">
+                    <ol>
+                        <li class="answer">{{ task.answer2|safe }}</li>
+                        <li class="answer">{{ task.answer3|safe }}</li>
+                        <li class="answer">{{ task.answer4|safe }}</li>
+                        <li class="answer correct-answer">{{ task.correct_answer|safe }}</li> <!-- Correct Answer -->
+                    </ol>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="submit-answer">Ответить</button>
+
+                <!-- Feedback Section -->
+                <div class="feedback"></div>
             </div>
             {% endfor %}
         </div>
@@ -169,23 +202,34 @@ body {
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Task logic for correct and incorrect answers
-            document.querySelectorAll(".answer").forEach((answer, index) => {
-                answer.addEventListener("click", function () {
-                    const task = answer.closest(".task");
-                    const correctIndex = parseInt(task.dataset.correct); // Correct answer index
-                    const selectedIndex = [...task.querySelectorAll(".answer")].indexOf(answer) + 1;
+            // Task logic for checking answers
+            document.querySelectorAll(".task").forEach(task => {
+                const correctAnswer = task.dataset.correct;
+                const inputField = task.querySelector(".answer-input");
+                const feedbackDiv = task.querySelector(".feedback");
+                const submitButton = task.querySelector(".submit-answer");
 
-                    if (selectedIndex === correctIndex) {
-                        answer.style.backgroundColor = "lightgreen";
-                        document.getElementById("correct-sound").play();
+                // Event listener for when the user clicks the "Ответить" button
+                submitButton.addEventListener("click", function () {
+                    const userAnswer = inputField.value.trim();
+
+                    // Ensure the user entered a number (1, 2, 3, or 4)
+                    if (userAnswer && /^[1-4]$/.test(userAnswer)) {
+                        // Check if the entered answer is correct
+                        if (userAnswer === correctAnswer) {
+                            feedbackDiv.textContent = "Правильно!";
+                            feedbackDiv.classList.remove("incorrect");
+                            feedbackDiv.classList.add("correct");
+                            document.getElementById("correct-sound").play();
+                        } else {
+                            feedbackDiv.textContent = "Неправильно, попробуйте еще раз!";
+                            feedbackDiv.classList.remove("correct");
+                            feedbackDiv.classList.add("incorrect");
+                            document.getElementById("wrong-sound").play();
+                        }
                     } else {
-                        answer.style.backgroundColor = "lightcoral";
-                        document.getElementById("wrong-sound").play();
+                        feedbackDiv.textContent = "Пожалуйста, введите цифру от 1 до 4."; // Feedback for invalid input
                     }
-
-                    // Disable further clicks
-                    task.querySelectorAll(".answer").forEach(a => a.style.pointerEvents = "none");
                 });
             });
         });
