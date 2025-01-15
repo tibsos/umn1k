@@ -6,36 +6,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ lesson.title }}</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <style>
-@font-face {
-    font-family: Comfortaa;
-    src: url("{% static 'fonts/Comforta.ttf' %}");
-}
-
+/* Общий стиль */
 body {
-    font-family: Comfortaa;
-    margin: 0;
-    padding: 0;
+    font-family: Comfortaa, sans-serif;
     background-color: #f4f4f9;
     color: #333;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
     max-width: 800px;
-    width: 100%;
     margin: 40px auto;
     background: #fff;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Breadcrumb Styling */
 .breadcrumb {
     margin-bottom: 20px;
     font-size: 14px;
@@ -56,72 +50,54 @@ body {
     color: #333;
 }
 
-/* Lesson Title */
 .lesson-title {
     font-size: 28px;
     margin-bottom: 20px;
-    color: #333;
     text-align: center;
 }
 
-/* Lesson Content */
 .lesson-content p {
-    margin-bottom: 16px;
     text-align: justify;
     font-size: 18px;
     line-height: 1.6;
-}
-
-/* Tasks Section */
-.tasks-container {
-    margin-top: 30px;
-    text-align: left;
+    margin-bottom: 16px;
 }
 
 .task {
     margin-bottom: 20px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 15px;
     background-color: #f9f9f9;
+    border-radius: 5px;
+    border: 1px solid #ddd;
 }
 
 .task p {
-    margin-bottom: 10px;
     font-weight: bold;
 }
 
-.task ol {
-    padding-left: 20px;
-}
-
-.task .answer {
-    cursor: pointer;
-    padding: 5px;
-    border: 1px solid transparent;
-    border-radius: 3px;
-}
-
-.task .answer:hover {
-    background-color: #f0f0f0;
-}
-
-/* Answer input field */
-.task .answer-input {
+.task button {
+    display: block;
     width: 100%;
+    margin: 10px 0;
     padding: 10px;
-    margin-top: 10px;
-    border-radius: 3px;
-    border: 1px solid #ddd;
     font-size: 16px;
-    color: #333;
+    background-color: #e9e9e9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
 }
 
-/* Feedback for correct/incorrect answers */
+.task button:hover {
+    background-color: #dcdcdc;
+}
+
 .feedback {
     margin-top: 10px;
     font-weight: bold;
     padding: 5px;
+    text-align: center;
 }
 
 .correct {
@@ -132,31 +108,37 @@ body {
     color: red;
 }
 
-/* Back Link */
 .back-link {
-    display: inline-block;
     margin-top: 20px;
-    text-decoration: none;
+    display: inline-block;
     color: #555;
     font-size: 16px;
+    text-decoration: none;
 }
 
 .back-link:hover {
     text-decoration: underline;
 }
-
 </style>
 
 <body>
     <div class="container">
-        <!-- Breadcrumb Navigation -->
-        <nav class="breadcrumb">
-            <a href="{% url 'landing' %}" class="breadcrumb-link">Home</a> >
-            <a href="{% url 'subject' subject.slug %}" class="breadcrumb-link">{{ subject.title }}</a> >
-            <a href="{% url 'topic' subject.slug topic.slug %}" class="breadcrumb-link">{{ topic.title }}</a> >
-            <span class="breadcrumb-current">{{ lesson.title }}</span>
-        </nav>
-
+        <h1>{{ lesson.title }}</h1>
+        <div class="tasks-container">
+            {% for task in lesson.tasks.all %}
+            <div class="task" data-correct="{{ task.correct_answer }}">
+                <p><strong>{{ task.question|safe }}</strong></p>
+                <div class="answers">
+                    <button class="answer" data-value="{{ task.answer2 }}">1. {{ task.answer2|safe }}</button>
+                    <button class="answer" data-value="{{ task.answer3 }}">2. {{ task.answer3|safe }}</button>
+                    <button class="answer" data-value="{{ task.answer4 }}">3. {{ task.answer4|safe }}</button>
+                    <button class="answer" data-value="{{ task.correct_answer }}">4. {{ task.correct_answer|safe }}</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
         <!-- Lesson Content -->
         <h1 class="lesson-title">{{ lesson.title }}</h1>
         <div class="lesson-content">
@@ -169,67 +151,45 @@ body {
             {% for task in lesson.tasks.all %}
             <div class="task" data-correct="{{ task.correct_answer }}">
                 <p><strong>{{ task.question|safe }}</strong></p>
-
-                <!-- Answer Input Field -->
-                <input type="text" class="answer-input" placeholder="Enter the number of your answer (e.g., 1, 2, 3, or 4)">
-                
-                <!-- Display answer options below input field -->
                 <div class="answers">
-                    <ol>
-                        <li class="answer">{{ task.answer2|safe }}</li>
-                        <li class="answer">{{ task.answer3|safe }}</li>
-                        <li class="answer">{{ task.answer4|safe }}</li>
-                        <li class="answer correct-answer">{{ task.correct_answer|safe }}</li> <!-- Correct Answer -->
-                    </ol>
+                    <button class="answer" data-value="1">{{ task.answer2|safe }}</button>
+                    <button class="answer" data-value="2">{{ task.answer3|safe }}</button>
+                    <button class="answer" data-value="3">{{ task.answer4|safe }}</button>
+                    <button class="answer" data-value="4">{{ task.correct_answer|safe }}</button>
                 </div>
-
-                <!-- Submit Button -->
-                <button class="submit-answer">Ответить</button>
-
-                <!-- Feedback Section -->
                 <div class="feedback"></div>
             </div>
             {% endfor %}
         </div>
 
-        <!-- Back to Topic Link -->
-        <a class="back-link" href="{% url 'topic' subject.slug topic.slug %}">← Back to {{ topic.title }}</a>
+        <a href="{% url 'topic' subject.slug topic.slug %}" class="back-link">← Назад к {{ topic.title }}</a>
     </div>
 
-    <!-- Sounds -->
     <audio id="correct-sound" src="/static/sounds/correct.mp3" preload="auto"></audio>
     <audio id="wrong-sound" src="/static/sounds/wrong.mp3" preload="auto"></audio>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Task logic for checking answers
             document.querySelectorAll(".task").forEach(task => {
-                const correctAnswer = task.dataset.correct;
-                const inputField = task.querySelector(".answer-input");
+                const correctAnswer = task.dataset.correct.trim();
                 const feedbackDiv = task.querySelector(".feedback");
-                const submitButton = task.querySelector(".submit-answer");
+                const answerButtons = task.querySelectorAll(".answer");
 
-                // Event listener for when the user clicks the "Ответить" button
-                submitButton.addEventListener("click", function () {
-                    const userAnswer = inputField.value.trim();
-
-                    // Ensure the user entered a number (1, 2, 3, or 4)
-                    if (userAnswer && /^[1-4]$/.test(userAnswer)) {
-                        // Check if the entered answer is correct
+                answerButtons.forEach(button => {
+                    button.addEventListener("click", function () {
+                        const userAnswer = button.dataset.value.trim();
                         if (userAnswer === correctAnswer) {
                             feedbackDiv.textContent = "Правильно!";
-                            feedbackDiv.classList.remove("incorrect");
                             feedbackDiv.classList.add("correct");
+                            feedbackDiv.classList.remove("incorrect");
                             document.getElementById("correct-sound").play();
                         } else {
                             feedbackDiv.textContent = "Неправильно, попробуйте еще раз!";
-                            feedbackDiv.classList.remove("correct");
                             feedbackDiv.classList.add("incorrect");
+                            feedbackDiv.classList.remove("correct");
                             document.getElementById("wrong-sound").play();
                         }
-                    } else {
-                        feedbackDiv.textContent = "Пожалуйста, введите цифру от 1 до 4."; // Feedback for invalid input
-                    }
+                    });
                 });
             });
         });
