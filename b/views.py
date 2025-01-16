@@ -12,10 +12,7 @@ def subject(request, subject_slug):
     subject = get_object_or_404(Subject, slug=subject_slug)
     topics = subject.topics.all()
 
-    return render(request, 'subject.html', {
-        'subject': subject,
-        'topics': topics
-    })
+    return render(request, 'subject.html', {'subject': subject, 'topics': topics})
 
 def topic(request, subject_slug, topic_slug):
 
@@ -23,11 +20,7 @@ def topic(request, subject_slug, topic_slug):
     topic = get_object_or_404(Topic, slug=topic_slug, subject=subject)
     lessons = topic.lessons.all()
 
-    return render(request, 'topic.html', {
-        'subject': subject,
-        'topic': topic,
-        'lessons': lessons
-    })
+    return render(request, 'topic.html', {'subject': subject, 'topic': topic, 'lessons': lessons})
 
 def lesson(request, subject_slug, topic_slug, lesson_slug):
 
@@ -35,13 +28,8 @@ def lesson(request, subject_slug, topic_slug, lesson_slug):
     topic = get_object_or_404(Topic, slug=topic_slug, subject=subject)
     lesson = get_object_or_404(Lesson, slug=lesson_slug, topic=topic)
 
-    c = {
-        'subject': subject,
-        'topic': topic,
-        'lesson': lesson,
-        'lessons': topic.lessons.all(),
-        'topics': subject.topics.all(),
-        'subjects': Subject.objects.all()
-    }
+    с = {}
 
-    return render(request, 'lesson.html', c)
+    
+     
+    return render(request, 'lesson.html', {'subject': subject, 'topic': topic, 'lesson': lesson})
